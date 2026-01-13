@@ -1,0 +1,18 @@
+# --- .NET ---
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+appsettings.Development.json
+
+# --- Node.js ---
+node_modules/
+npm-debug.log
+dist/
+.env
+
+# --- OS / IDE ---
+.DS_Store
+.idea/
+.vscode/
