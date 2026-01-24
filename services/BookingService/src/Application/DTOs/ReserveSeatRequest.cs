@@ -4,5 +4,5 @@ using System.Text;
 
 namespace Application.DTOs
 {
-    public record ReserveSeatRequest(Guid SeatId, Guid UserId);
+    public record ReserveSeatRequest(Guid SeatId);
 }

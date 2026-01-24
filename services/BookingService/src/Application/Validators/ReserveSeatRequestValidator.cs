@@ -11,7 +11,7 @@ namespace Application.Validators
         public ReserveSeatRequestValidator()
         {
             RuleFor(x => x.SeatId).NotEmpty().WithMessage("El ID del asiento es obligatorio.");
-            RuleFor(x => x.UserId).NotEmpty().WithMessage("El ID del usuario es obligatorio.");
+           
         }
     }
 }

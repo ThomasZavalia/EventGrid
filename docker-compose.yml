@@ -12,6 +12,8 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eventgrid-net
   
   redis:
     image: redis:alpine
@@ -20,7 +22,52 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - eventgrid-net
+    
+  booking-service:
+    build:
+      context: . 
+      dockerfile: services/BookingService/Dockerfile
+    container_name: eventgrid-booking
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=eventgrid_booking;Username=admin;Password=password123
+      - JwtSettings__Secret=${JWT_SECRET} # Lee del .env
+      - ASPNETCORE_URLS=http://+:5000;http://+:5001
+      - Kestrel__Endpoints__Http__Url=http://+:5000
+      - Kestrel__Endpoints__Grpc__Url=http://+:5001
+      - Kestrel__Endpoints__Grpc__Protocols=Http2
+    ports:
+      - "5000:5000" # HTTP REST
+      - "5001:5001" # gRPC
+    depends_on:
+      - postgres
+    networks:
+      - eventgrid-net
+
+
+  virtual-queue:
+    build:
+      context: .
+      dockerfile: services/VirtualQueueService/Dockerfile
+    container_name: eventgrid-queue
+    environment:
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - PROTO_PATH=/protos/booking.proto 
+      - GRPC_TARGET=booking-service:5001 
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - booking-service
+    networks:
+      - eventgrid-net
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  eventgrid-net:
+    driver: bridge

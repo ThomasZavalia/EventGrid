@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import redisClient from '../config/redis.js';
 import logger from '../config/logger.js';
 import { QUEUE_CONFIG } from '../config/constants.js';
+import { retryWithBackoff } from '../utils/retry.js';
+import { getQueueToken } from '../grpc/client.js';
 
 export const joinQueue = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -37,15 +39,48 @@ export const joinQueue = async (req: Request, res: Response): Promise<void> => {
         const lastServed = lastServedStr ? parseInt(lastServedStr) : 0;
         
         const position = myTicketNumber - lastServed;
-        const canEnter = position <= QUEUE_CONFIG.BATCH_SIZE;
+        let accessToken = null;
+       const canEnter = position <= QUEUE_CONFIG.BATCH_SIZE;
+        
+
+        if (canEnter) {
+            
+            const cachedTokenKey = `queue:token:${userId}`;
+            const cachedToken = await redisClient.get(cachedTokenKey);
+
+            if (cachedToken) {
+                logger.info(`♻️ Token recuperado de cache para ${userId}`);
+                accessToken = cachedToken;
+            } else {
+               
+                try {
+                    logger.info(`📞 Solicitando token a .NET para usuario ${userId}...`);
+                    
+                    accessToken = await retryWithBackoff(
+                        () => getQueueToken(userId),
+                        3,  
+                        200 
+                    );
+
+                    
+                    await redisClient.setEx(cachedTokenKey, 900, accessToken);
+                    logger.info(` Token recibido de .NET y cacheado.`);
+
+                } catch (error) {
+                    logger.error(' Falló la obtención del token tras reintentos:', error);
+                
+                    res.status(502).json({ error: 'El servicio de reservas no responde. Intente nuevamente.' });
+                    return;
+                }
+            }
+        }
 
         res.json({
             ticketNumber: myTicketNumber,
             currentServing: lastServed,
             position: position > 0 ? position : 0,
             status: canEnter ? 'PROCESSED' : 'WAITING',
-        
-            accessToken: canEnter ? `TEMP_TOKEN_${userId}` : null 
+            accessToken: accessToken 
         });
 
     } catch (error) {
