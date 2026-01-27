@@ -1,3 +1,5 @@
+import { startTracing } from './config/tracing.js';
+startTracing();
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -7,6 +9,7 @@ import queueRoutes from './routes/queueRoutes.js';
 import { startQueueWorker, stopQueueWorker } from './workers/queueWorker.js';
 import logger from './config/logger.js';
 import { getQueueToken } from './grpc/client.js';
+
 
 dotenv.config();
 

@@ -24,6 +24,31 @@ services:
       - redis_data:/data
     networks:
       - eventgrid-net
+  
+  rabbitmq:
+    image: masstransit/rabbitmq:latest
+    container_name: eventgrid-rabbitmq
+    ports:
+      - "5672:5672"  
+      - "15672:15672" 
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - eventgrid-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: eventgrid-jaeger
+    ports:
+      - "16686:16686" # UI Web 
+      - "4317:4317"   
+      - "4318:4318" 
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - eventgrid-net  
+  
     
   booking-service:
     build:
@@ -32,14 +57,14 @@ services:
     container_name: eventgrid-booking
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=eventgrid_booking;Username=admin;Password=password123
-      - JwtSettings__Secret=${JWT_SECRET} # Lee del .env
+      - JwtSettings__Secret=${JWT_SECRET} 
       - ASPNETCORE_URLS=http://+:5000;http://+:5001
       - Kestrel__Endpoints__Http__Url=http://+:5000
       - Kestrel__Endpoints__Grpc__Url=http://+:5001
       - Kestrel__Endpoints__Grpc__Protocols=Http2
     ports:
-      - "5000:5000" # HTTP REST
-      - "5001:5001" # gRPC
+      - "5000:5000" 
+      - "5001:5001" 
     depends_on:
       - postgres
     networks:

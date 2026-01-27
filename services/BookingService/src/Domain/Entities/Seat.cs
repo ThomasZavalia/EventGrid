@@ -54,5 +54,18 @@ namespace Domain.Entities
             UserId = Guid.Empty;
         }
 
+        public Result ConfirmPurchase()
+        {
+            if (Status != SeatStatus.Reserved)
+                return Result.Fail("El asiento debe estar reservado antes de confirmar pago", ErrorType.Validation);
+
+            if (UserId == null)
+                return Result.Fail("No hay usuario asignado a esta reserva", ErrorType.Validation);
+
+            Status = SeatStatus.Sold;
+
+            return Result.Success();
+        }
+
     }
 }

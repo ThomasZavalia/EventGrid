@@ -1,10 +1,14 @@
 using API.Services.Grpc;
 using Application;
+using Application.Consumers;
 using Infrastructure;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +68,48 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireQueuePass", policy =>
         policy.RequireClaim("is_queue_pass", "true"));
 });
+
+
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<PaymentProccessorConsumer>();
+
+    
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("rabbitmq", "/", h => {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+       
+        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(2)));
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("BookingService"))
+            .AddAspNetCoreInstrumentation()
+          .AddEntityFrameworkCoreInstrumentation(options =>
+          {
+           options.EnrichWithIDbCommand = (activity, command) =>
+           {
+          activity.SetTag("db.statement", command.CommandText);
+           };
+          })
+          .AddMassTransitInstrumentation()
+            .AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri("http://jaeger:4317"); 
+            });
+    });
 
 var app = builder.Build();
 
