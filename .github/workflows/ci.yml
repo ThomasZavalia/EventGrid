@@ -1,0 +1,63 @@
+name: EventGrid CI Pipeline
+
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  
+  dotnet-validation:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 10.0.x
+        
+    - name: Restore dependencies
+     
+      run: |
+        dotnet restore services/BookingService/src/API/API.csproj
+        dotnet restore services/BookingService/tests/Domain.UnitTests/Domain.UnitTests.csproj
+
+    - name: Build .NET Backend
+      run: dotnet build services/BookingService/src/API/API.csproj --no-restore --configuration Release
+
+    - name: Run Unit Tests
+     
+      run: dotnet test services/BookingService/tests/Domain.UnitTests/Domain.UnitTests.csproj --no-restore --verbosity normal
+
+ 
+  node-validation:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+        
+    - name: Install Dependencies
+      working-directory: ./services/VirtualQueueService
+      run: npm ci
+      
+    - name: Build TypeScript
+      working-directory: ./services/VirtualQueueService
+      run: npm run build
+
+
+  docker-build-check:
+    runs-on: ubuntu-latest
+    needs: [dotnet-validation, node-validation] 
+    steps:
+    - uses: actions/checkout@v3
+    
+    
+    - name: Build Docker Images
+      run: docker compose build
