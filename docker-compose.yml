@@ -41,13 +41,27 @@ services:
     image: jaegertracing/all-in-one:latest
     container_name: eventgrid-jaeger
     ports:
-      - "16686:16686" # UI Web 
+      - "16686:16686"  
       - "4317:4317"   
       - "4318:4318" 
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     networks:
       - eventgrid-net  
+
+    
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/ApiGateway/Dockerfile
+    container_name: eventgrid-gateway
+    ports:
+      - "8080:8080" 
+    depends_on:
+      - booking-service
+      - virtual-queue
+    networks:
+      - eventgrid-net
   
     
   booking-service:
@@ -62,9 +76,12 @@ services:
       - Kestrel__Endpoints__Http__Url=http://+:5000
       - Kestrel__Endpoints__Grpc__Url=http://+:5001
       - Kestrel__Endpoints__Grpc__Protocols=Http2
-    ports:
-      - "5000:5000" 
-      - "5001:5001" 
+  #  ports:
+   #   - "5000:5000" 
+    #  - "5001:5001" 
+    expose:
+      - "5000"
+      - "5001"
     depends_on:
       - postgres
     networks:
@@ -81,8 +98,10 @@ services:
       - REDIS_URL=redis://redis:6379
       - PROTO_PATH=/protos/booking.proto 
       - GRPC_TARGET=booking-service:5001 
-    ports:
-      - "3000:3000"
+    #ports:
+     # - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       - redis
       - booking-service
