@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "API.Grpc";
+
+package booking;
+
+
+service BookingGrpc {
+ 
+  rpc GetQueueToken (GetQueueTokenRequest) returns (GetQueueTokenResponse);
+}
+
+message GetQueueTokenRequest {
+  string userId = 1;
+}
+
+
+message GetQueueTokenResponse {
+  string token = 1;    
+  bool success = 2;
+  string message = 3;
+}

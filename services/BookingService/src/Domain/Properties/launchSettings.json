@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Domain": {
+      "commandName": "Project"
+    },
+    "Perfil 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\Thomas\\Desktop\\EventGrid\\services\\BookingService\\src\\API\\Program.cs"
+    }
+  }
+}

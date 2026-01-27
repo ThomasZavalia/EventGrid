@@ -8,11 +8,110 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: eventgrid_booking
-      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eventgrid-net
+  
+  redis:
+    image: redis:alpine
+    container_name: eventgrid-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - eventgrid-net
+  
+  rabbitmq:
+    image: masstransit/rabbitmq:latest
+    container_name: eventgrid-rabbitmq
+    ports:
+      - "5672:5672"  
+      - "15672:15672" 
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - eventgrid-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: eventgrid-jaeger
+    ports:
+      - "16686:16686"  
+      - "4317:4317"   
+      - "4318:4318" 
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - eventgrid-net  
+
+    
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/ApiGateway/Dockerfile
+    container_name: eventgrid-gateway
+    ports:
+      - "8080:8080" 
+    depends_on:
+      - booking-service
+      - virtual-queue
+    networks:
+      - eventgrid-net
+  
+    
+  booking-service:
+    build:
+      context: . 
+      dockerfile: services/BookingService/Dockerfile
+    container_name: eventgrid-booking
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=eventgrid_booking;Username=admin;Password=password123
+      - JwtSettings__Secret=${JWT_SECRET} 
+      - ASPNETCORE_URLS=http://+:5000;http://+:5001
+      - Kestrel__Endpoints__Http__Url=http://+:5000
+      - Kestrel__Endpoints__Grpc__Url=http://+:5001
+      - Kestrel__Endpoints__Grpc__Protocols=Http2
+  #  ports:
+   #   - "5000:5000" 
+    #  - "5001:5001" 
+    expose:
+      - "5000"
+      - "5001"
+    depends_on:
+      - postgres
+    networks:
+      - eventgrid-net
+
+
+  virtual-queue:
+    build:
+      context: .
+      dockerfile: services/VirtualQueueService/Dockerfile
+    container_name: eventgrid-queue
+    environment:
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - PROTO_PATH=/protos/booking.proto 
+      - GRPC_TARGET=booking-service:5001 
+    #ports:
+     # - "3000:3000"
+    expose:
+      - "3000"
+    depends_on:
+      - redis
+      - booking-service
+    networks:
+      - eventgrid-net
 
 volumes:
   postgres_data:
+  redis_data:
+
+networks:
+  eventgrid-net:
+    driver: bridge
