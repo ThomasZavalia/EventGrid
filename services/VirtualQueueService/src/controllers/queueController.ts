@@ -21,7 +21,7 @@ export const joinQueue = async (req: Request, res: Response): Promise<void> => {
 
         if (existingTicket) {
             myTicketNumber = parseInt(existingTicket);
-            logger.info(`🔄 Usuario ${userId} recuperó ticket #${myTicketNumber}`);
+            logger.info(` Usuario ${userId} recuperó ticket #${myTicketNumber}`);
         } else {
            
             myTicketNumber = await redisClient.incr(QUEUE_CONFIG.TOTAL_TICKETS_KEY);
@@ -31,7 +31,7 @@ export const joinQueue = async (req: Request, res: Response): Promise<void> => {
                 QUEUE_CONFIG.TICKET_TTL_SECONDS, 
                 myTicketNumber.toString()
             );
-            logger.info(`🆕 Usuario ${userId} obtuvo ticket #${myTicketNumber}`);
+            logger.info(` Usuario ${userId} obtuvo ticket #${myTicketNumber}`);
         }
 
     
@@ -49,12 +49,12 @@ export const joinQueue = async (req: Request, res: Response): Promise<void> => {
             const cachedToken = await redisClient.get(cachedTokenKey);
 
             if (cachedToken) {
-                logger.info(`♻️ Token recuperado de cache para ${userId}`);
+                logger.info(` Token recuperado de cache para ${userId}`);
                 accessToken = cachedToken;
             } else {
                
                 try {
-                    logger.info(`📞 Solicitando token a .NET para usuario ${userId}...`);
+                    logger.info(` Solicitando token a .NET para usuario ${userId}...`);
                     
                     accessToken = await retryWithBackoff(
                         () => getQueueToken(userId),

@@ -5,7 +5,7 @@ import { QUEUE_CONFIG } from '../config/constants.js';
 let workerInterval: NodeJS.Timeout | null = null;
 
 export const startQueueWorker = () => {
-    console.log('👷 Queue Worker iniciado...');
+    console.log(' Queue Worker iniciado...');
 
     workerInterval = setInterval(async () => {
         const lock = new DistributedLock('queue_worker', 2000);
@@ -37,10 +37,10 @@ export const startQueueWorker = () => {
 
             await redisClient.set(QUEUE_CONFIG.LAST_SERVED_KEY, nextBatch.toString());
             
-            console.log(`⏩ [Worker] Atendiendo hasta ticket #${nextBatch}. (Faltan: ${totalTickets - nextBatch})`);
+            console.log(` [Worker] Atendiendo hasta ticket #${nextBatch}. (Faltan: ${totalTickets - nextBatch})`);
 
         } catch (error) {
-            console.error('❌ Error en Queue Worker:', error);
+            console.error(' Error en Queue Worker:', error);
         } finally {
             
             await lock.release();
@@ -52,6 +52,6 @@ export const stopQueueWorker = () => {
     if (workerInterval) {
         clearInterval(workerInterval);
         workerInterval = null;
-        console.log('🛑 Queue Worker detenido');
+        console.log(' Queue Worker detenido');
     }
 };

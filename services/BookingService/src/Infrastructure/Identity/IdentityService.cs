@@ -51,7 +51,7 @@ namespace Infrastructure.Identity
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                return (false, null, "Email o contraseña inválidos");
+                return (false, null, "Email o contraseña invalidos");
             }
 
             var token = GenerateJwtToken(user);

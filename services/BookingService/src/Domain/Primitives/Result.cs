@@ -17,10 +17,10 @@ public class Result
     {
        
         if (isSuccess && error != string.Empty)
-            throw new InvalidOperationException("Un resultado exitoso no puede tener mensaje de error.");
+            throw new InvalidOperationException("Un resultado exitoso no puede tener mensaje de error");
 
         if (!isSuccess && string.IsNullOrWhiteSpace(error))
-            throw new InvalidOperationException("Un resultado fallido debe tener un mensaje de error.");
+            throw new InvalidOperationException("Un resultado fallido debe tener un mensaje de error");
 
         IsSuccess = isSuccess;
         Error = error;
