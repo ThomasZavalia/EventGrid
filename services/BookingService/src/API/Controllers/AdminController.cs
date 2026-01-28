@@ -25,7 +25,7 @@ namespace API.Controllers
                 return BadRequest("La base de datos ya tiene datos.");
             }
 
-            // 2. Crear Evento
+            
             var myEvent = new Event
             {
                 Id = Guid.NewGuid(),
