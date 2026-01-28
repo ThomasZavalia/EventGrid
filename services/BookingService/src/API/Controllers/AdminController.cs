@@ -19,7 +19,7 @@ namespace API.Controllers
         [HttpPost("seed")]
         public async Task<IActionResult> SeedDatabase()
         {
-            // 1. Verificar si ya hay datos
+            
             if (_context.Events.Any())
             {
                 return BadRequest("La base de datos ya tiene datos.");

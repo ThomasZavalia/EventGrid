@@ -76,9 +76,7 @@ services:
       - Kestrel__Endpoints__Http__Url=http://+:5000
       - Kestrel__Endpoints__Grpc__Url=http://+:5001
       - Kestrel__Endpoints__Grpc__Protocols=Http2
-  #  ports:
-   #   - "5000:5000" 
-    #  - "5001:5001" 
+  
     expose:
       - "5000"
       - "5001"
@@ -98,8 +96,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - PROTO_PATH=/protos/booking.proto 
       - GRPC_TARGET=booking-service:5001 
-    #ports:
-     # - "3000:3000"
+   
     expose:
       - "3000"
     depends_on:

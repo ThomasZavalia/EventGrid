@@ -27,5 +27,5 @@ EXPOSE 5001
 
 COPY --from=build /app/publish .
 
-# Entrada
+
 ENTRYPOINT ["dotnet", "API.dll"]

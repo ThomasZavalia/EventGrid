@@ -20,7 +20,7 @@ export async function retryWithBackoff<T>(
 
             
             const delay = initialDelay * Math.pow(2, attempt); 
-            logger.warn(`⚠️ Intento fallido (${attempt + 1}/${maxRetries}). Reintentando en ${delay}ms... Error: ${lastError.message}`);
+            logger.warn(` Intento fallido (${attempt + 1}/${maxRetries}). Reintentando en ${delay}ms... Error: ${lastError.message}`);
             
             await new Promise(resolve => setTimeout(resolve, delay));
         }

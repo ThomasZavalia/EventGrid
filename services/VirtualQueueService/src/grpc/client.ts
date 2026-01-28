@@ -38,9 +38,9 @@ export const getQueueToken = (userId: string): Promise<string> => {
            if (err) {
                   
                     if (err.code === grpc.status.DEADLINE_EXCEEDED) {
-                        logger.error('❌ Timeout: .NET tardó más de 5s en responder');
+                        logger.error(' Timeout: .NET tardó más de 5s en responder');
                     } else {
-                        logger.error('❌ Error gRPC llamando a .NET:', err);
+                        logger.error(' Error gRPC llamando a .NET:', err);
                     }
                     return reject(err);
                 }

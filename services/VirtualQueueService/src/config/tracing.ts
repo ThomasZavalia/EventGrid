@@ -33,14 +33,14 @@ const sdk = new NodeSDK({
 export const startTracing = () => {
     try {
         sdk.start();
-        console.log('🕵️ Tracing inicializado con Jaeger');
+        console.log(' Tracing inicializado con Jaeger');
     } catch (error) {
-        console.error('❌ Error iniciando tracing:', error);
+        console.error(' Error iniciando tracing:', error);
     }
 };
 
 process.on('SIGTERM', () => {
   sdk.shutdown()
-    .then(() => console.log('✅ Tracing cerrado correctamente'))
-    .catch((error) => console.error('❌ Error cerrando tracing:', error));
+    .then(() => console.log(' Tracing cerrado correctamente'))
+    .catch((error) => console.error(' Error cerrando tracing:', error));
 });

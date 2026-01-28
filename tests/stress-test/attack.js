@@ -38,13 +38,13 @@ async function runBot(botId) {
         }
 
         if (!accessToken) {
-            console.log(chalk.red(`${logPrefix} ❌ Salió de la cola pero sin token!`));
+            console.log(chalk.red(`${logPrefix}  Salió de la cola pero sin token!`));
             results.queue_errors++;
             return;
         }
 
         
-        console.log(chalk.yellow(`${logPrefix} 🎫 Token obtenido. Intentando comprar...`));
+        console.log(chalk.yellow(`${logPrefix}  Token obtenido. Intentando comprar...`));
         
         try {
             await axios.post(`${BOOKING_URL}/reserve`, 
@@ -52,7 +52,7 @@ async function runBot(botId) {
                 { headers: { Authorization: `Bearer ${accessToken}` } }
             );
             
-            console.log(chalk.green.bold(`${logPrefix} 🎉 COMPRA EXITOSA!`));
+            console.log(chalk.green.bold(`${logPrefix}  COMPRA EXITOSA!`));
             results.success++;
 
         } catch (error) {
@@ -60,11 +60,11 @@ async function runBot(botId) {
         if (error.response) {
             
             if (error.response.status === 409) {
-                console.log(chalk.blue(`${logPrefix} 📉 Perdió: Asiento ocupado (409)`));
+                console.log(chalk.blue(`${logPrefix}  Perdió: Asiento ocupado (409)`));
                 results.conflict++;
 
             } else if (error.response.status === 404) {
-                console.log(chalk.red(`${logPrefix} ❌ Error: Asiento no encontrado (404)`));
+                console.log(chalk.red(`${logPrefix}  Error: Asiento no encontrado (404)`));
                 results.failed++;
 
             } else {
@@ -72,13 +72,13 @@ async function runBot(botId) {
                 const errorMsg = JSON.stringify(error.response.data);
                 const statusCode = error.response.status;
 
-                console.log(chalk.magenta(`${logPrefix} 🕵️ INVESTIGAR: Status: ${statusCode} | Mensaje: ${errorMsg}`));
+                console.log(chalk.magenta(`${logPrefix}  INVESTIGAR: Status: ${statusCode} | Mensaje: ${errorMsg}`));
                 results.failed++;
             }
 
         } else {
            
-            console.log(chalk.red(`${logPrefix} 💥 Error de RED (Sin respuesta): ${error.message}`));
+            console.log(chalk.red(`${logPrefix}  Error de RED (Sin respuesta): ${error.message}`));
             results.queue_errors++;
         }
     }
@@ -90,8 +90,8 @@ async function runBot(botId) {
 }
 
 (async () => {
-    console.log(chalk.cyan(`🚀 INICIANDO ATAQUE CON ${TOTAL_BOTS} BOTS...`));
-    console.log(chalk.cyan(`🎯 Objetivo: Asiento ${SEAT_ID_TARGET}`));
+    console.log(chalk.cyan(` INICIANDO ATAQUE CON ${TOTAL_BOTS} BOTS...`));
+    console.log(chalk.cyan(` Objetivo: Asiento ${SEAT_ID_TARGET}`));
 
  
     const promises = [];
@@ -105,15 +105,15 @@ async function runBot(botId) {
 
     console.log('\n' + chalk.bgBlue.white(' RESUMEN FINAL '));
     console.log(chalk.green(`✅ Compras Exitosas: ${results.success}`));
-    console.log(chalk.blue(`📉 Conflictos (409): ${results.conflict}`));
+    console.log(chalk.blue(` Conflictos (409): ${results.conflict}`));
     console.log(chalk.red(`❌ Fallos/Errores:   ${results.failed + results.queue_errors}`));
     
     if (results.success > 1) {
-        console.log(chalk.bgRed.white(' 🚨 GRAVE: SOBREVENTA DETECTADA! (Más de 1 éxito) '));
+        console.log(chalk.bgRed.white('  GRAVE: SOBREVENTA DETECTADA (Mas de 1 exito) '));
     } else if (results.success === 1) {
-        console.log(chalk.bgGreen.black(' 🏆 SISTEMA ROBUSTO: Solo 1 compra permitida. '));
+        console.log(chalk.bgGreen.black('  SISTEMA ROBUSTO: Solo 1 compra permitida '));
         
     } else {
-        console.log(chalk.bgYellow.black(' ⚠️ ALGO RARO: Nadie pudo comprar. '));
+        console.log(chalk.bgYellow.black('  ALGO RARO: Nadie pudo comprar '));
     }
 })();

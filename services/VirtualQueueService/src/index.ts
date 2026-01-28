@@ -69,12 +69,12 @@ const startServer = async () => {
         startQueueWorker();
         
         const server = app.listen(port, () => {
-            console.log(`🚀 Virtual Queue Service corriendo en http://localhost:${port}`);
+            console.log(`Virtual Queue Service corriendo en http://localhost:${port}`);
         });
 
       
         const gracefulShutdown = async () => {
-            logger.info('🛑 Cerrando servidor...');
+            logger.info('Cerrando servidor...');
     
             stopQueueWorker();
             
