@@ -23,7 +23,7 @@ namespace Application.Services
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
-                var seat = await _unitOfWork.Seats.GetByIdAsync(seatId, cancellationToken);
+                var seat = await _unitOfWork.Seats.GetByIdAsync(seatId, trackChanges: true, cancellationToken);
 
                 if (seat == null)
                     return Result.Fail("El asiento no existe.", ErrorType.NotFound);
@@ -54,7 +54,7 @@ namespace Application.Services
 
         public async Task<Result<PaymentInitiatedDto>> InitiatePaymentAsync(Guid seatId, Guid userId, CancellationToken cancellationToken)
         {
-            var seat = await _unitOfWork.Seats.GetByIdAsync(seatId, cancellationToken);
+            var seat = await _unitOfWork.Seats.GetByIdAsync(seatId, trackChanges: false, cancellationToken);
 
             if (seat == null)
                 return Result.Fail<PaymentInitiatedDto>("Asiento no encontrado.", ErrorType.NotFound);

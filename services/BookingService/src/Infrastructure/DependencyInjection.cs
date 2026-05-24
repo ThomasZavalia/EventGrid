@@ -31,6 +31,7 @@ namespace Infrastructure
 
             services.AddScoped<ISeatRepository, SeatRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IDbSeeder, DbSeeder>();
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
 

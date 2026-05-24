@@ -27,27 +27,13 @@ app.get('/health', async (req, res) => {
         await redisClient.ping();
         
       
-        let grpcStatus = 'unknown';
-        try {
-           
-            await getQueueToken('HEALTH_CHECK_PROBE'); 
-            grpcStatus = 'connected';
-        } catch (error) {
-           
-            const err = error as any;
-            if (err.code === 14) { 
-                 grpcStatus = 'disconnected';
-            } else {
-             
-                 grpcStatus = 'connected';
-            }
-        }
+        
+        const grpcStatus = 'untracked';
 
-       
         const isCriticalFailure = false; 
 
         res.status(isCriticalFailure ? 503 : 200).json({ 
-            status: grpcStatus === 'connected' ? 'OK' : 'DEGRADED', 
+            status: 'OK', 
             service: 'VirtualQueueService',
             redis: 'connected',
             grpc: grpcStatus

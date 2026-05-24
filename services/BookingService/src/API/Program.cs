@@ -25,7 +25,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
-    // Usar solo en Development. En Production usar "AllowFrontend".
+  
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
@@ -34,7 +34,7 @@ builder.Services.AddCors(options =>
               .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
     });
 
-    // Origenes permitidos en Production. Configurar "AllowedOrigins" en appsettings o env var.
+  
     var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(",", StringSplitOptions.RemoveEmptyEntries)
                          ?? Array.Empty<string>();
     options.AddPolicy("AllowFrontend", policy =>
@@ -53,8 +53,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    // El secreto viene del binding de IOptions<JwtSettings> registrado en Infrastructure.
-    // La variable de entorno JWT_SECRET se mapea a JwtSettings:Secret via docker-compose.
+   
     var jwtSection = builder.Configuration.GetSection("JwtSettings");
     var secretKey = jwtSection["Secret"];
 
@@ -135,7 +134,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseCors("AllowFrontend"); // Configurar AllowedOrigins en appsettings/env var
+    app.UseCors("AllowFrontend"); 
 }
 
 app.UseHttpsRedirection();

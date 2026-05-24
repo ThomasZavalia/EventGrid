@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,7 +8,7 @@ namespace Domain.Events
     {
         public Guid SeatId { get; init; }
         public Guid UserId { get; init; }
-        public string Reason { get; init; }
+        public string Reason { get; init; } = string.Empty;
         public DateTime FailedAt { get; init; }
     }
 }
