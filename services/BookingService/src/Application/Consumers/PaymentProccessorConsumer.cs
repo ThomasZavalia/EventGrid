@@ -1,4 +1,4 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 using Domain.Events;
 using Microsoft.Extensions.Logging;
 using System;
@@ -24,10 +24,7 @@ namespace Application.Consumers
         public async Task Consume(ConsumeContext<PaymentInitiatedEvent> context)
         {
             var message = context.Message;
-            _logger.LogInformation($" Procesando pago para Seat {message.SeatId} del usuario {message.UserId}...");
-
-            
-            await Task.Delay(2000);
+            _logger.LogInformation("Procesando pago para Seat {SeatId} del usuario {UserId}...", message.SeatId, message.UserId);
 
             try { 
             var seat = await _unitOfWork.Seats.GetByIdAsync(message.SeatId,context.CancellationToken);

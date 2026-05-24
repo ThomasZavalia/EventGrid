@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
@@ -17,7 +17,9 @@ namespace Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-           
+          
+            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -26,9 +28,11 @@ namespace Infrastructure
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
              .AddEntityFrameworkStores<ApplicationDbContext>()
              .AddDefaultTokenProviders();
+
             services.AddScoped<ISeatRepository, SeatRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IIdentityService, IdentityService>();
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
 
             return services;
         }

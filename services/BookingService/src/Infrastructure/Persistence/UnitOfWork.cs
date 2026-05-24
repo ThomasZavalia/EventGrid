@@ -1,10 +1,6 @@
-﻿using Application.Interfaces;
-using Domain.Entities;
+using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Infrastructure.Persistence
 {
@@ -39,6 +35,15 @@ namespace Infrastructure.Persistence
         public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
         {
             await _transaction!.RollbackAsync(cancellationToken);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.DisposeAsync();
+            }
+            await _context.DisposeAsync();
         }
     }
 }
