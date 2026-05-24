@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -16,9 +16,14 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Seat?> GetByIdAsync(Guid seatId, CancellationToken cancellationToken)
+        public async Task<Seat?> GetByIdAsync(Guid seatId, bool trackChanges, CancellationToken cancellationToken)
         {
-           return await _context.Seats.FirstOrDefaultAsync(s => s.Id == seatId, cancellationToken);
+            var query = _context.Seats.AsQueryable();
+            
+            if (!trackChanges)
+                query = query.AsNoTracking();
+                
+            return await query.FirstOrDefaultAsync(s => s.Id == seatId, cancellationToken);
         }
 
         public async Task<bool> UpdateAsync(Seat seat, CancellationToken cancellationToken)

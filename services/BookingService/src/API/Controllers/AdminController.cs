@@ -1,8 +1,7 @@
-using Domain.Entities;
-using Infrastructure.Persistence;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -11,55 +10,28 @@ namespace API.Controllers
     [Authorize]
     public class AdminController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbSeeder _dbSeeder;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(IDbSeeder dbSeeder)
         {
-            _context = context;
+            _dbSeeder = dbSeeder;
         }
 
         [HttpPost("seed")]
         public async Task<IActionResult> SeedDatabase()
         {
-            
-            if (_context.Events.Any())
+            var result = await _dbSeeder.SeedAsync();
+
+            if (!result.IsSuccess)
             {
-                return BadRequest("La base de datos ya tiene datos.");
+                return BadRequest(result.Message);
             }
-
-            // 2. Crear Evento
-            var myEvent = new Event
-            {
-                Id = Guid.NewGuid(),
-                Name = "Concierto de Rock 2026",
-                Date = DateTime.UtcNow.AddMonths(1)
-            };
-
-            _context.Events.Add(myEvent);
-
-            
-            var seats = new List<Seat>();
-            for (int i = 1; i <= 50; i++)
-            {
-               
-                seats.Add(new Seat(
-                    section: "General",
-                    number: $"A-{i}",
-                    price: 150.00m,
-                    eventId: myEvent.Id
-                ));
-            }
-
-            _context.Seats.AddRange(seats);
-
-          
-            await _context.SaveChangesAsync();
 
             return Ok(new
             {
-                message = "Base de datos inicializada",
-                eventId = myEvent.Id,
-                seatsCreated = seats.Count
+                message = result.Message,
+                eventId = result.EventId,
+                seatsCreated = result.SeatsCreated
             });
         }
     }
