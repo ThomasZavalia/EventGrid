@@ -27,7 +27,7 @@ namespace Application.Consumers
             _logger.LogInformation("Procesando pago para Seat {SeatId} del usuario {UserId}...", message.SeatId, message.UserId);
 
             try { 
-            var seat = await _unitOfWork.Seats.GetByIdAsync(message.SeatId,context.CancellationToken);
+            var seat = await _unitOfWork.Seats.GetByIdAsync(message.SeatId, trackChanges: true, context.CancellationToken);
 
                 if (seat == null)
             {
