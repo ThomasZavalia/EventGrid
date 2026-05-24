@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Application.Interfaces
 {
-   public interface IUnitOfWork
+   public interface IUnitOfWork : IAsyncDisposable
     {
         ISeatRepository Seats { get; }
        

@@ -5,8 +5,8 @@ services:
     image: postgres:17-alpine
     container_name: eventgrid-postgres
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: eventgrid_booking
     ports:
       - "5434:5432"
@@ -32,8 +32,8 @@ services:
       - "5672:5672"  
       - "15672:15672" 
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
     networks:
       - eventgrid-net
 
@@ -70,8 +70,10 @@ services:
       dockerfile: services/BookingService/Dockerfile
     container_name: eventgrid-booking
     environment:
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=eventgrid_booking;Username=admin;Password=password123
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=eventgrid_booking;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - JwtSettings__Secret=${JWT_SECRET} 
+      - RabbitMQ__User=${RABBITMQ_USER}
+      - RabbitMQ__Pass=${RABBITMQ_PASS}
       - ASPNETCORE_URLS=http://+:5000;http://+:5001
       - Kestrel__Endpoints__Http__Url=http://+:5000
       - Kestrel__Endpoints__Grpc__Url=http://+:5001

@@ -14,6 +14,15 @@ export const joinQueue = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+       
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!UUID_REGEX.test(userId)) {
+            res.status(400).json({ 
+                error: 'UserId inválido. Debe ser el UUID del usuario (campo "id" en la respuesta del login), no el token JWT.' 
+            });
+            return;
+        }
+
         const userTicketKey = `queue:user:${userId}`;
         const existingTicket = await redisClient.get(userTicketKey);
 

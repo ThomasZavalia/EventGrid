@@ -25,9 +25,21 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
+    // Usar solo en Development. En Production usar "AllowFrontend".
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+    });
+
+    // Origenes permitidos en Production. Configurar "AllowedOrigins" en appsettings o env var.
+    var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(",", StringSplitOptions.RemoveEmptyEntries)
+                         ?? Array.Empty<string>();
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
@@ -41,10 +53,10 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    
-    var envSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
-    var confSecret = builder.Configuration["JwtSettings:Secret"];
-    var secretKey = !string.IsNullOrEmpty(envSecret) ? envSecret : confSecret;
+    // El secreto viene del binding de IOptions<JwtSettings> registrado en Infrastructure.
+    // La variable de entorno JWT_SECRET se mapea a JwtSettings:Secret via docker-compose.
+    var jwtSection = builder.Configuration.GetSection("JwtSettings");
+    var secretKey = jwtSection["Secret"];
 
     if (string.IsNullOrEmpty(secretKey) || secretKey.Length < 32)
     {
@@ -57,8 +69,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        ValidIssuer = jwtSection["Issuer"],
+        ValidAudience = jwtSection["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
     };
 });
@@ -80,8 +92,8 @@ builder.Services.AddMassTransit(x =>
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("rabbitmq", "/", h => {
-            h.Username("guest");
-            h.Password("guest");
+            h.Username(builder.Configuration["RabbitMQ:User"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMQ:Pass"] ?? "guest");
         });
 
        
@@ -115,13 +127,16 @@ var app = builder.Build();
 
 
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors("AllowAll");
 }
-app.UseCors("AllowAll");
+else
+{
+    app.UseCors("AllowFrontend"); // Configurar AllowedOrigins en appsettings/env var
+}
 
 app.UseHttpsRedirection();
 

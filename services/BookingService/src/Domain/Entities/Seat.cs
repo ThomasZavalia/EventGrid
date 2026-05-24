@@ -1,4 +1,4 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 using Domain.Primitives;
 using System;
 using System.Collections.Generic;
@@ -48,10 +48,10 @@ namespace Domain.Entities
             return Result.Success();
         }
 
-        public void Realese() 
+        public void Release()
         {
-        Status = SeatStatus.Available;
-            UserId = Guid.Empty;
+            Status = SeatStatus.Available;
+            UserId = null;
         }
 
         public Result ConfirmPurchase()
