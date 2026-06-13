@@ -14,7 +14,7 @@ namespace BookingService.IntegrationTests;
 
 public class PaymentFlowIntegrationTests
 {
-    //Helpers internos
+    
     private static Seat CreateReservedSeat(Guid seatId, Guid userId)
     {
         
@@ -81,12 +81,12 @@ public class PaymentFlowIntegrationTests
         // ASSERT
   
         Assert.True(result.IsSuccess,
-            $"InitiatePaymentAsync falló inesperadamente: {result.Error}");
+            $"InitiatePaymentAsync fallo inesperadamente: {result.Error}");
 
         
         Assert.True(
             await harness.Published.Any<PaymentInitiatedEvent>(),
-            "El BookingService no publicó ningún PaymentInitiatedEvent en el bus."
+            "El BookingService no publico ningún PaymentInitiatedEvent en el bus"
         );
 
        
@@ -154,19 +154,19 @@ public class PaymentFlowIntegrationTests
 
        
         Assert.True(consumed,
-            "El PaymentProccessorConsumer no consumió el PaymentInitiatedEvent.");
+            "El PaymentProccessorConsumer no consumió el PaymentInitiatedEvent");
 
       
         mockUoW.Verify(
             u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once,
-            "SaveChangesAsync debería haberse llamado exactamente una vez para persistir el Sold."
+            "SaveChangesAsync deberia haberse llamado exactamente una vez para persistir el Sold"
         );
 
         
         Assert.True(
             await harness.Published.Any<PaymentSucceededEvent>(),
-            "El consumer no publicó el PaymentSucceededEvent tras confirmar la compra."
+            "El consumer no publico el PaymentSucceededEvent tras confirmar la compra"
         );
 
         await harness.Stop();
@@ -221,13 +221,13 @@ public class PaymentFlowIntegrationTests
         // ASSERT
 
         Assert.True(result.IsFailure,
-            "El servicio debería haber fallado para un asiento en estado Sold.");
+            "El servicio deberia haber fallado para un asiento en estado Sold");
         Assert.Equal(Domain.Enums.ErrorType.Conflict, result.ErrorType);
 
        
         var anyEventPublished = await harness.Published.Any<PaymentInitiatedEvent>();
         Assert.False(anyEventPublished,
-            "El servicio publicó un PaymentInitiatedEvent para un asiento que no estaba Reserved. ¡Bug crítico!");
+            "El servicio publico un PaymentInitiatedEvent para un asiento que no estaba Reserved");
 
         await harness.Stop();
     }
