@@ -59,7 +59,7 @@ public class PaymentFlowIntegrationTests
             .AddMassTransitTestHarness(cfg =>
             {
                 
-                cfg.AddConsumer<PaymentProccessorConsumer>();
+                cfg.AddConsumer<PaymentProcessorConsumer>();
             })
             .BuildServiceProvider(true);
 
@@ -128,7 +128,7 @@ public class PaymentFlowIntegrationTests
         await using var provider = new ServiceCollection()
             .AddMassTransitTestHarness(cfg =>
             {
-                cfg.AddConsumer<PaymentProccessorConsumer>();
+                cfg.AddConsumer<PaymentProcessorConsumer>();
             })
             .AddScoped<IUnitOfWork>(_ => mockUoW.Object)
             .AddLogging()
@@ -154,7 +154,7 @@ public class PaymentFlowIntegrationTests
 
        
         Assert.True(consumed,
-            "El PaymentProccessorConsumer no consumió el PaymentInitiatedEvent");
+            "El PaymentProcessorConsumer no consumió el PaymentInitiatedEvent");
 
       
         mockUoW.Verify(
@@ -197,7 +197,7 @@ public class PaymentFlowIntegrationTests
         await using var provider = new ServiceCollection()
             .AddMassTransitTestHarness(cfg =>
             {
-                cfg.AddConsumer<PaymentProccessorConsumer>();
+                cfg.AddConsumer<PaymentProcessorConsumer>();
             })
             .BuildServiceProvider(true);
 
