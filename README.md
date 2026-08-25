@@ -167,6 +167,16 @@ bash scripts/run-tests.sh <seat-uuid>
 
 ---
 
+## Observabilidad
+
+El sistema incluye trazas distribuidas con OpenTelemetry exportadas a Jaeger. Cubre automáticamente requests HTTP, consultas a la base de datos y mensajes de RabbitMQ.
+
+Con el sistema corriendo, abrí `http://localhost:16686` en el navegador. Desde el selector de servicio podés elegir `BookingService` y ver una traza completa por cada operación: desde el request al Gateway, pasando por la query a PostgreSQL, hasta la publicación del evento en RabbitMQ y su consumo por el Worker.
+
+El endpoint de health check del BookingService está disponible en `http://localhost:8090/api/bookings/health` (vía Gateway) y devuelve el estado del servicio y la conectividad con la base de datos.
+
+---
+
 ## Limitaciones conocidas
 
 El load test reveló un comportamiento a tener en cuenta: si muchos usuarios se unen a la cola y luego abandonan la sesión (sin llegar a reservar), sus tickets quedan pendientes en Redis. El Queue Worker los procesa de todas formas, generando una brecha entre el contador interno y los usuarios reales activos. Bajo tráfico muy alto esto puede ralentizar el tiempo de espera para usuarios genuinos.

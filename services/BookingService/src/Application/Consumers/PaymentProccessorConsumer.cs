@@ -1,21 +1,17 @@
 using Domain.Enums;
 using Domain.Events;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using MassTransit;
 using Application.Interfaces;
 
-
 namespace Application.Consumers
 {
-    public class PaymentProccessorConsumer : IConsumer<PaymentInitiatedEvent>
+    public class PaymentProcessorConsumer : IConsumer<PaymentInitiatedEvent>
     {
-        private readonly ILogger<PaymentProccessorConsumer> _logger;
+        private readonly ILogger<PaymentProcessorConsumer> _logger;
         private readonly IUnitOfWork _unitOfWork;
 
-        public PaymentProccessorConsumer(ILogger<PaymentProccessorConsumer> logger, IUnitOfWork unitOfWork)
+        public PaymentProcessorConsumer(ILogger<PaymentProcessorConsumer> logger, IUnitOfWork unitOfWork)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -24,52 +20,66 @@ namespace Application.Consumers
         public async Task Consume(ConsumeContext<PaymentInitiatedEvent> context)
         {
             var message = context.Message;
-            _logger.LogInformation("Procesando pago para Seat {SeatId} del usuario {UserId}...", message.SeatId, message.UserId);
+            _logger.LogInformation(
+                "Procesando pago para Seat {SeatId} del usuario {UserId}",
+                message.SeatId, message.UserId);
 
-            try { 
-            var seat = await _unitOfWork.Seats.GetByIdAsync(message.SeatId, trackChanges: true, context.CancellationToken);
+            var seat = await _unitOfWork.Seats.GetByIdAsync(
+                message.SeatId, trackChanges: true, context.CancellationToken);
 
-                if (seat == null)
+            if (seat == null)
             {
-                _logger.LogError($"Asiento {message.SeatId} para finalizar pago");
+               
+                _logger.LogError(
+                    "Asiento {SeatId} no encontrado. Mensaje descartado.",
+                    message.SeatId);
                 return;
             }
 
-                if (seat.UserId != message.UserId)
-                {
-                    _logger.LogWarning($"UserIds no coinciden. Esperado: {seat.UserId}, Recibido: {message.UserId}");
-                    return;
-                }
-
-                if(seat.Status != SeatStatus.Reserved)
-                {
-                    _logger.LogWarning($"El asiento {seat.Id} no está en estado 'Reserved'. Estado actual: {seat.Status}");
-                    return;
-                }
-
-                var result = seat.ConfirmPurchase();
-                if (result.IsFailure)
-                {
-                    _logger.LogError($"Error al confirmar la compra del asiento {seat.Id}: {result.Error}");
-                    return;
-                }
-                
-               await _unitOfWork.SaveChangesAsync(context.CancellationToken);
-
-                _logger.LogInformation($"PAGO CONFIRMADO. Asiento {seat.Number} vendido.");
-
-                await context.Publish(new PaymentSucceededEvent
-                {
-                    SeatId = seat.Id,
-                    UserId = message.UserId,
-                    ProcessedAt = DateTime.UtcNow
-                });
+            if (seat.Status == SeatStatus.Sold)
+            {
+               
+                _logger.LogWarning(
+                    "Asiento {SeatId} ya está en estado Sold. Mensaje duplicado ignorado.",
+                    message.SeatId);
+                return;
             }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error procesando pago");
-            throw; 
+
+            if (seat.UserId != message.UserId)
+            {
+               
+                throw new InvalidOperationException(
+                    $"Inconsistencia de datos: asiento {message.SeatId} pertenece al usuario " +
+                    $"{seat.UserId}, pero el evento indica {message.UserId}.");
+            }
+
+            if (seat.Status != SeatStatus.Reserved)
+            {
+               
+                throw new InvalidOperationException(
+                    $"Estado inesperado del asiento {message.SeatId}: '{seat.Status}'. " +
+                    $"Se esperaba 'Reserved'.");
+            }
+
+            var result = seat.ConfirmPurchase();
+            if (result.IsFailure)
+            {
+                throw new InvalidOperationException(
+                    $"Error de dominio al confirmar asiento {seat.Id}: {result.Error}");
+            }
+
+            await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+
+            _logger.LogInformation(
+                "Pago confirmado. Asiento {SeatNumber} (Id: {SeatId}) vendido al usuario {UserId}.",
+                seat.Number, seat.Id, message.UserId);
+
+            await context.Publish(new PaymentSucceededEvent
+            {
+                SeatId = seat.Id,
+                UserId = message.UserId,
+                ProcessedAt = DateTime.UtcNow
+            });
         }
-}
     }
 }
