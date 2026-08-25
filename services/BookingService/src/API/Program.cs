@@ -2,8 +2,10 @@ using API.Services.Grpc;
 using Application;
 using Application.Consumers;
 using Infrastructure;
+using Infrastructure.Persistence;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
@@ -84,7 +86,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<PaymentProccessorConsumer>();
+    x.AddConsumer<PaymentProcessorConsumer>();
 
     
 
@@ -102,6 +104,9 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>("database");
+
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
     {
@@ -118,7 +123,7 @@ builder.Services.AddOpenTelemetry()
           .AddMassTransitInstrumentation()
             .AddOtlpExporter(options =>
             {
-                options.Endpoint = new Uri("http://jaeger:4317"); 
+                options.Endpoint = new Uri("http://jaeger:4317");
             });
     });
 
@@ -137,7 +142,7 @@ else
     app.UseCors("AllowFrontend"); 
 }
 
-app.UseHttpsRedirection();
+
 
 app.UseAuthentication(); 
 
@@ -145,6 +150,7 @@ app.UseAuthorization();
 
 app.MapGrpcService<BookingGrpcService>();
 app.MapControllers();
+app.MapHealthChecks("/api/bookings/health");
 
 
 
